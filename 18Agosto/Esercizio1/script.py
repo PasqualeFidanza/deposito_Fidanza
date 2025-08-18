@@ -19,9 +19,8 @@ def parole_frequenti(parole):
     for parola in parole:
         p = parola.lower()
         count_words[p] = count_words.get(p, 0) + 1
-    frequenti = sorted(count_words, reverse=True)
+    frequenti = sorted(count_words.items(), key=lambda x: x[1], reverse=True)
     return frequenti[:5]
-
 
 
 
