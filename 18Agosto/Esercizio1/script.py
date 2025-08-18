@@ -5,8 +5,15 @@ def leggi_file(file):
 def conta_righe(file):
     return len(file)
 
-def conta_parole(file):
+def estrai_parole(file):
+    parole = []
+    for riga in file:
+        parole.extend(riga.strip().split())
+    return parole
+
+def conta_parole(parole):
     pass
 
 def parole_frequenti(file):
     pass
+
