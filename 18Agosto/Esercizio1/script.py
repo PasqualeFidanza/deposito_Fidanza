@@ -12,7 +12,7 @@ def estrai_parole(file):
     return parole
 
 def conta_parole(parole):
-    pass
+    return len(parole)
 
 def parole_frequenti(file):
     pass
