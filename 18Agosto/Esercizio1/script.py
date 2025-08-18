@@ -1,8 +1,8 @@
-def conta_righe():
+def conta_righe(file):
+    return len(file)
+
+def conta_parole(file):
     pass
 
-def conta_parole():
-    pass
-
-def parole_frequenti():
+def parole_frequenti(file):
     pass
