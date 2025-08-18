@@ -22,7 +22,7 @@ def parole_frequenti(parole):
     frequenti = sorted(count_words.items(), key=lambda x: x[1], reverse=True)
     return frequenti[:5]
 
-path = r"C:\Users\VW778XM\OneDrive - EY\Documents\GitHub\deposito_Fidanza\18Agosto\Esercizio1\file.txt"
+path = r"18Agosto\Esercizio1\file.txt"
 
 file = leggi_file(path)
 print(conta_righe(file))
