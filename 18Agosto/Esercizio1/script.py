@@ -14,6 +14,14 @@ def estrai_parole(file):
 def conta_parole(parole):
     return len(parole)
 
-def parole_frequenti(file):
-    pass
+def parole_frequenti(parole):
+    count_words = {}
+    for parola in parole:
+        p = parola.lower()
+        count_words[p] = count_words.get(p, 0) + 1
+    frequenti = sorted(count_words, reverse=True)
+    return frequenti[:5]
+
+
+
 
