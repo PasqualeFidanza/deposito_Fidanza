@@ -4,8 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
-
+from sklearn.metrics import confusion_matrix
 # leggo il dataset
 df = pd.read_csv('Esercizio2\AirQualityUCI.csv', sep=';')
 df = df.dropna(subset=['PT08.S1(CO)'])
@@ -30,18 +29,20 @@ y = df['target']
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42, stratify=y)
 
 # Creazione del modello Random Forest
-rf = RandomForestClassifier(n_estimators=10, random_state=42)
+rf = RandomForestClassifier(n_estimators=15, random_state=42, class_weight='balanced')
 
 rf.fit(X_train, y_train)
 
 y_pred = rf.predict(X_test)
 
 print("Random Forest: \n",classification_report(y_test, y_pred))
+print("Confusion Matrix: \n", confusion_matrix(y_pred, y_test))
 
 # Creazione del modello Decision Tree
-dt = DecisionTreeClassifier(max_depth=7)
+dt = DecisionTreeClassifier(max_depth=7, class_weight='balanced')
 dt.fit(X_train, y_train)
 
 y_pred_dt = dt.predict(X_test)
 
 print("Decision Tree: \n", classification_report(y_test, y_pred_dt))
+print("Confusion Matrix: \n", confusion_matrix(y_pred_dt, y_test))
