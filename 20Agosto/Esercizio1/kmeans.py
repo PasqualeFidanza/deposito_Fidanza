@@ -37,3 +37,15 @@ plt.scatter(
     label='Best Cluster Centroid'
 )
 plt.show()
+
+# Calcolo della distanza media
+for l in np.unique(labels):
+    cluster_points = X_values[labels == l]
+
+    # Calcola la distanza euclidea di ogni punto dal centroide del cluster
+    distances = np.linalg.norm(cluster_points - centroids[l], axis=1)
+
+    # Calcola la distanza media
+    mean_distance = np.mean(distances)
+
+    print(f"Distanza media dei punti dal centroide {l}: {mean_distance:.2f}")
