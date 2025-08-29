@@ -1,0 +1,9 @@
+search_task:
+  description: >
+    Conduct a thorough research about {question}
+    Make sure you find any interesting and relevant information about it.
+  expected_output: >
+    A list with 10 bullet points of the most relevant information about {question}
+  agent: searcher
+
+

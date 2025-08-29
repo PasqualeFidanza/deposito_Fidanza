@@ -1,0 +1,9 @@
+rag_task:
+  description: >
+    Use your knowledge to retrieve the latest and most relevant information about {question}. 
+    Analyze and synthesize your findings to provide concise insights. 
+  expected_output: >
+    A list of 10 bullet points summarizing the most important 
+    and current developments, trends, or discoveries related to {question}.
+  agent: rag_agent
+
