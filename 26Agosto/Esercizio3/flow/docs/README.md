@@ -44,3 +44,4 @@ La documentazione include:
 - Utilizza il tema Alabaster di Sphinx
 - Include supporto per Google-style e NumPy-style docstrings
 - Genera automaticamente la documentazione da tutti i moduli Python
+

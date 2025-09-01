@@ -73,7 +73,7 @@ class RagToolSphinx(BaseTool):
             print("Errore LLM:", e)
 
         # Carica o costruisci FAISS Sphinx
-        docs = self._load_sphinx_documents()
+        docs = self._load_sphinx_documents_regex()
         self.vector_store_sphinx = self._load_or_build_sphinx_vectorstore(docs)
         self.retriever_sphinx = self._make_retriever(self.vector_store_sphinx)
 

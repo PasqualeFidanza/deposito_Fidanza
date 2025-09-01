@@ -134,7 +134,7 @@ class RagOrSearchFlow(Flow[FlowState]):
         return self.state
     
     # @listen('math')
-    # def hanlde_math(self):
+    # def handle_math(self):
     #     crew = MathCrew().crew()
     #     pass
 
@@ -144,9 +144,13 @@ class RagOrSearchFlow(Flow[FlowState]):
         Chiede in input il nome dell'applicazione e restituisce la documentazione etica.
         """
         app_name = input("Inserisci il nome dell'applicazione: ")
+        # Crea una versione slug del nome (solo lettere, numeri e trattini)
+        app_name_slug = ''.join(c.lower() if c.isalnum() else '-' for c in app_name).strip('-')
         crew = DocsCrew().crew()
         self.state.answer = crew.kickoff(inputs={
-            'app_name': app_name
+            'app_name': app_name,
+            'app_name_slug': app_name_slug,
+            'link': 'https://aloosley.github.io/techops/template-application-documentation/#general-information'
         })
         return self.state
 

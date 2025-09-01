@@ -2,8 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
-from src.flow.tools.docs_tool import RagToolSphinx
-from src.flow.tools.web_scaper_tool import duckduckgo_search_tool
+from flow.tools.docs_tool import RagToolSphinx
+from crewai_tools import ScrapeWebsiteTool
 
 link = "https://aloosley.github.io/techops/template-application-documentation/#general-information"
 
@@ -20,7 +20,7 @@ class DocsCrew():
         return Agent(
             config=self.agents_config['web_search_agent'],
             verbose=True,
-            tools=[duckduckgo_search_tool(link, max_results=1)]
+            tools=[ScrapeWebsiteTool(website_url=link)]
         )
     
     @agent

@@ -45,3 +45,4 @@ Search Tool
    :members:
    :undoc-members:
    :show-inheritance:
+
