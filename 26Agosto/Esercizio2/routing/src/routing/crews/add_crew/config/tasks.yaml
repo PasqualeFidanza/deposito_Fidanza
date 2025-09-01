@@ -1,0 +1,9 @@
+add_task:
+  description: >
+    Add two numbers: {first_number} and {second_number}
+  expected_output: >
+    The sum of the two numbers given by the user, returned
+    only as a number (without other explainations).
+  agent: adder
+
+

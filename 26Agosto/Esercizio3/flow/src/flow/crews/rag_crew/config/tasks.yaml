@@ -1,0 +1,7 @@
+rag_task:
+  description: >
+    Use your knowledge to retrieve the most relevant information about {question} in your knowledge base. 
+  expected_output: >
+    The answer to {question} retrieved from your knowledge base.
+  agent: rag_agent
+

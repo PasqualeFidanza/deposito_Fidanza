@@ -1,0 +1,7 @@
+research_task:
+  description: >
+    Search the internet for the url provided by the user and summarize it.
+    The summary must be brief, clear, and informative.
+  expected_output: >
+    A text with the main information extracted from the first 3 search results.
+  agent: researcher
