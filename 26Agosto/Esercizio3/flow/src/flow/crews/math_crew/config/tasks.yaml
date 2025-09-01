@@ -1,0 +1,9 @@
+math_task:
+  description: >
+    Convert the textual {input} in some mathematic function.
+    Make sure that function is in python.
+    Pass the argument to the function and solve it.
+  expected_output: >
+    The numercal solution to {input}.
+  agent: math_solver
+

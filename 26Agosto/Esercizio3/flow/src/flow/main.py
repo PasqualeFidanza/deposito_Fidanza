@@ -7,10 +7,12 @@ basandosi sul contenuto della domanda.
 """
 
 from pydantic import BaseModel
-from crewai.flow import Flow, listen, start, router
+from crewai.flow import Flow, listen, start, router, or_
 from crewai import LLM
 from flow.crews.rag_crew.rag_crew import RagCrew
 from flow.crews.search_crew.search_crew import SearchCrew
+from flow.crews.math_crew.math_crew import MathCrew
+from flow.crews.docs_crew.docs_crew import DocsCrew
 
 
 class FlowState(BaseModel):
@@ -50,6 +52,7 @@ class RagOrSearchFlow(Flow[FlowState]):
         """
         while True:
             self.state.question = input('Inserisci la domanda: ')
+            print('DOMANDA: ', self.state.question)
             if self.state.question.strip():
                 break
             else:
@@ -73,21 +76,25 @@ class RagOrSearchFlow(Flow[FlowState]):
                 "role": "system",
                 "content": (
                     f"Analyze the question '{self.state.question}'; "
-                    f"if it is related to '{self.state.rag_topic}' return 'true', "
-                    f"otherwise return 'false'. Don't give any other explanation."
+                    f"if it is related to '{self.state.rag_topic}' return 'rag', "
+                    f"otherwise return 'search'. Don't give any other explaination."
                 )
             }
         ]
 
         response = llm.call(messages=messages)
-        if response is not None:
+        print('RISPOSTA: ', response)
+
+        if response:
             response = response.strip().lower()
+            if response == 'rag':
+                return 'rag'
+            elif response == 'search':
+                return 'search'
+            else:
+                return 'math'
         else:
-            response = ''
-        print("Routing decision:", response)
-        if response == 'true':
-            return 'rag'
-        else:
+            # fallback se LLM non risponde
             return 'search'
 
 
@@ -125,6 +132,15 @@ class RagOrSearchFlow(Flow[FlowState]):
             'question': self.state.question
         })
         return self.state
+    
+    # @listen('math')
+    # def hanlde_math(self):
+    #     crew = MathCrew().crew()
+    #     pass
+
+    # @listen(or_(handle_rag, handle_search))
+    # def handle_documentation(self):
+    #     pass
 
 
 def kickoff():
