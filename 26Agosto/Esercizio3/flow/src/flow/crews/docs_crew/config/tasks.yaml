@@ -1,17 +1,24 @@
-research_task:
+extract_template_fields:
   description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is {current_year}.
+    Visit {link} and return the field schema needed to create the application
+    documentation according to the TechOps template. If {link} has an anchor,
+    restrict the output to that section.
   expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
-  agent: researcher
+    A JSON object with: "template", "sections":[...]
+  agent: web_search_agent
 
-reporting_task:
+generate_ethics_doc:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
+    Create a TechOps-style ethics documentation for {app_name} in HTML in the Italian language using the
+    section/field schema provided via the task context and the Sphinx documentation
+    analyzed through rag_tool_sphinx. Preserve the template structure, cite sources per
+    section, and add a final "Missing Information (To Ask the User)" section.
+  agent: docs_agent
+  context:
+    - extract_template_fields   # prior task that outputs the schema; becomes this task's context
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
-  agent: reporting_analyst
+    A single, self-contained HTML document that follows the schema order from context,
+    fills each field using ONLY Sphinx-derived information (or marks it as
+    "<em>Not available in the provided context.</em>"), cites Sphinx sources by basename,
+    and includes a final "Missing Information (To Ask the User)" section.
+  output_file: output/{app_name_slug}_techops.html

@@ -138,9 +138,17 @@ class RagOrSearchFlow(Flow[FlowState]):
     #     crew = MathCrew().crew()
     #     pass
 
-    # @listen(or_(handle_rag, handle_search))
-    # def handle_documentation(self):
-    #     pass
+    @listen(or_(handle_rag, handle_search))
+    def handle_documentation(self):
+        """
+        Chiede in input il nome dell'applicazione e restituisce la documentazione etica.
+        """
+        app_name = input("Inserisci il nome dell'applicazione: ")
+        crew = DocsCrew().crew()
+        self.state.answer = crew.kickoff(inputs={
+            'app_name': app_name
+        })
+        return self.state
 
 
 def kickoff():
