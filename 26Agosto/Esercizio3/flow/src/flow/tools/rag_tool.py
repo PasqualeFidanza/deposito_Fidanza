@@ -54,7 +54,7 @@ class RagTool(BaseTool):
     load_dotenv()
 
     # Campi input Pydantic
-    documents_path: str = Field(default="docs")
+    documents_path: str = Field(default="docs/dogs_docs")
     persist_dir: Path = Field(default=Path("faiss_index_docs"))
 
     embeddings: Optional[AzureOpenAIEmbeddings] = None
