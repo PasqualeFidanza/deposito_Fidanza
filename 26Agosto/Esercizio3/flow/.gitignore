@@ -4,3 +4,9 @@ lib/
 .DS_Store
 .venv
 flow/.venv
+
+#gitignore flavia
+venv/
+.venv/
+.env
+
