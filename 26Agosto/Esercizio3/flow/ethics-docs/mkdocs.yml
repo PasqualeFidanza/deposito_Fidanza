@@ -1,0 +1,18 @@
+site_name: Etica & Conformità - Esercizio 3
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Etica & Conformità:
+    - General Information: ethics/general-information.md
+    - Risk Classification: ethics/risk-classification.md
+    - Functionality: ethics/functionality.md
+    - Models & Datasets: ethics/models-and-datasets.md
+    - Deployment: ethics/deployment.md
+    - Lifecycle Management: ethics/lifecycle-management.md
+    - Testing & Validation: ethics/testing-validation.md
+    - Human Oversight: ethics/human-oversight.md
+    - Incident Management: ethics/incident-management.md
+    - Compliance Metadata: ethics/compliance-metadata.md
