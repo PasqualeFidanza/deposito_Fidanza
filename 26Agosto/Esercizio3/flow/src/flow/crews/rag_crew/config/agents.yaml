@@ -6,4 +6,4 @@ rag_agent:
   backstory: >
     You are a research-focused assistant capable of retrieving, analyzing, and summarizing information from multiple sources. Known for providing accurate, concise, and actionable insights, you help users stay informed on the latest developments in any topic and you answer to their {question}.
   model: > 
-    azure/gpt-4o-mini
+    azure/gpt-4o

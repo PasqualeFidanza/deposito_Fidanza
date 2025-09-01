@@ -1,155 +1,148 @@
-from crewai.tools import tool
+from pydantic import Field
+from crewai.tools import BaseTool
+from typing import List, Optional
 from pathlib import Path
-from typing import List
-import os
-from langchain.schema import Document
-from langchain_community.vectorstores import FAISS
 from langchain_openai import AzureOpenAIEmbeddings
+from langchain.chat_models import init_chat_model
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import AzureChatOpenAI
+import os
 from dotenv import load_dotenv
 
-load_dotenv()
+class RagTool(BaseTool):
+    name: str = "RAG Tool"
+    description: str = (
+        "Uno strumento CrewAI che implementa Retrieval-Augmented Generation (RAG) "
+        "con persistenza FAISS su disco. Carica documenti locali (.txt, .md), "
+        "e risponde alle domande citando le fonti."
+    )
 
-class RAGSystem:
-    def __init__(self):
-        self.persist_dir = "faiss_index_medical"
-        self.k = 4
-        
-        self.embeddings = self._get_embeddings()
-        self.llm = self._get_llm()
-        self.vector_store = None
-        self.chain = None
-        
-        self._initialize_rag()
-    
+    load_dotenv()
 
-    def _get_embeddings(self):
-        """Inizializza embedding Azure OpenAI"""
-        api_key = os.getenv("AZURE_API_KEY")
-        return AzureOpenAIEmbeddings(
-            model="text-embedding-3-small",
+    # Campi input Pydantic
+    documents_path: str = Field(default="docs")
+    persist_dir: Path = Field(default=Path("faiss_index_docs"))
+
+    embeddings: Optional[AzureOpenAIEmbeddings] = None
+    llm: Optional[object] = None
+    vector_store: Optional[FAISS] = None
+    retriever: Optional[object] = None
+    chain: Optional[object] = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        # 1️⃣ Embeddings
+        self.embeddings = AzureOpenAIEmbeddings(
+            api_key=os.getenv("AZURE_API_KEY"),
             azure_endpoint=os.getenv("AZURE_API_BASE"),
-            api_key=api_key
+            api_version=os.getenv("AZURE_API_VERSION"),
+            model=os.getenv("EMBEDDING_MODEL")
         )
-    
-
-    def _get_llm(self):
-        """Inizializza LLM Azure OpenAI"""
-        api_key = os.getenv("AZURE_API_KEY")
-        endpoint = os.getenv("AZURE_API_BASE")
-        deployment = os.getenv("MODEL")
-
-        return AzureChatOpenAI(
-            deployment_name=deployment,
-            openai_api_version="2024-02-15-preview",
-            azure_endpoint=endpoint,
-            openai_api_key=api_key,
-            temperature=0.1
+        # 2️⃣ LLM
+        self.llm = init_chat_model(
+            os.getenv("LLM_MODEL"),
+            model_provider="azure_openai",
+            api_key=os.getenv("AZURE_API_KEY"),
+            api_version=os.getenv("AZURE_API_VERSION"),
+            azure_endpoint=os.getenv("AZURE_API_BASE")
         )
-    
-    # Load documents form documents folder
-    def _load_documents(self):
-        """Carica i documenti dalla cartella documents"""
-        documents = []
-        for file in os.listdir("documents"):
-            with open(os.path.join("documents", file), "r") as f:
-                documents.append(Document(page_content=f.read()))
+        try:
+        # Test embedding: genera embedding per una stringa di esempio
+            test_emb = self.embeddings.embed_query("test")
+            print("Connessione embedding OK")
+        except Exception as e:
+            print("Errore embedding:", e)
+
+        try:
+            # Test LLM: genera una risposta di esempio
+            response = self.llm.invoke("Ciao!")
+            print("Connessione LLM OK")
+        except Exception as e:
+            print("Errore LLM:", e)
+
+        # 3️⃣ Carica o costruisce FAISS
+        docs = self._load_documents()
+        self.vector_store = self._load_or_build_vectorstore(docs)
+        self.retriever = self._make_retriever(self.vector_store)
+
+        # 4️⃣ Catena RAG
+        self.chain = self._build_chain()
+
+
+    def _load_documents(self) -> List[Document]:
+        folder = Path(self.documents_path)
+        documents: List[Document] = []
+        for file_path in folder.glob("**/*"):
+            if file_path.suffix.lower() not in [".txt", ".md"]:
+                continue
+            loader = TextLoader(str(file_path), encoding="utf-8")
+            docs = loader.load()
+            for doc in docs:
+                doc.metadata["source"] = file_path.name
+            documents.extend(docs)
         return documents
-    
 
-    def _initialize_rag(self):
-        """Inizializza o carica il sistema RAG"""
-        if Path(self.persist_dir).exists():
-            # Carica indice esistente
-            self.vector_store = FAISS.load_local(
-                self.persist_dir,
+    def _split_documents(self, docs: List[Document]) -> List[Document]:
+        splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=100)
+        return splitter.split_documents(docs)
+
+    def _build_vectorstore(self, chunks: List[Document]) -> FAISS:
+        vs = FAISS.from_documents(chunks, self.embeddings)
+        self.persist_dir.mkdir(parents=True, exist_ok=True)
+        vs.save_local(str(self.persist_dir))
+        return vs
+
+    def _load_or_build_vectorstore(self, docs: List[Document]) -> FAISS:
+        index_file = self.persist_dir / "index.faiss"
+        meta_file = self.persist_dir / "index.pkl"
+        if index_file.exists() and meta_file.exists():
+            return FAISS.load_local(
+                str(self.persist_dir),
                 self.embeddings,
                 allow_dangerous_deserialization=True
             )
-            print("✅ Indice FAISS medico caricato da disco")
-        else:
-            # Crea nuovo indice
-            documents = self._load_documents()
-            self.vector_store = FAISS.from_documents(
-                documents,
-                self.embeddings
-            )
-            # Salva su disco
-            self.vector_store.save_local(self.persist_dir)
-            print("✅ Nuovo indice FAISS medico creato e salvato")
-        
-        # Costruisci la chain RAG
-        self._build_rag_chain()
-    
+        chunks = self._split_documents(docs)
+        return self._build_vectorstore(chunks)
+
+    def _make_retriever(self, vector_store: FAISS):
+        return vector_store.as_retriever(search_kwargs={"k": 5})
+
 
     def _format_docs(self, docs: List[Document]) -> str:
-        """Formatta i documenti recuperati"""
-        return "\n\n---\n\n".join(doc.page_content for doc in docs)
-    
-
-    def _build_rag_chain(self):
-        """Costruisce la chain RAG con LangChain"""
-        # Template del prompt
-        template = """Sei un cinofilo esperto. Usa le seguenti informazioni dal database cinofilo per rispondere alla domanda.
-        Se le informazioni non sono sufficienti, indicalo chiaramente.
-        
-        Contesto dal database cinofilo:
-        {context}
-        
-        Domanda: {question}
-        
-        Fornisci una risposta dettagliata, precisa e in italiano."""
-        
-        prompt = ChatPromptTemplate.from_template(template)
-        
-        # Crea il retriever
-        retriever = self.vector_store.as_retriever(
-            search_type="similarity",
-            search_kwargs={"k": self.k}
+        return "\n\n".join(
+            [f"[source:{d.metadata.get('source','doc')}] {d.page_content}" for d in docs]
         )
-        
-        # Costruisci la chain
-        self.chain = (
-            {"context": retriever | self._format_docs, "question": RunnablePassthrough()}
+
+    def _build_chain(self):
+        system_prompt = (
+            "Sei un assistente esperto. Rispondi in italiano. "
+            "Usa solo le informazioni nei documenti forniti. "
+            "Se non trovi la risposta, scrivi: 'Non è presente nel contesto fornito.'"
+        )
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "Domanda:\n{question}\n\nContesto:\n{context}")
+        ])
+
+        chain = (
+            {
+                "question": RunnablePassthrough(),
+                "context": lambda q: self._format_docs(
+                    self.retriever.get_relevant_documents(q) if self.retriever else []
+                )
+            }
             | prompt
             | self.llm
             | StrOutputParser()
         )
-    
-    def search(self, question: str) -> str:
-        """Esegue una ricerca RAG"""
-        if not self.chain:
-            return "❌ Sistema RAG non inizializzato correttamente"
-        
-        try:
-            result = self.chain.invoke(question)
-            return result
-            
-        except Exception as e:
-            return f"❌ Errore nella ricerca RAG: {str(e)}"
+        return chain
 
-# Istanza globale del sistema RAG
-_rag_system = None
-
-def get_rag_system():
-    """Restituisce l'istanza singleton del sistema RAG"""
-    global _rag_system
-    if _rag_system is None:
-        _rag_system = RAGSystem()
-    return _rag_system
-
-@tool
-def search_rag(question: str) -> str:
-    """
-    Effettua una ricerca nel database cinofilo locale utilizzando RAG.
-    Restituisce informazioni cinofile basate sui documenti hardcodati di esempio.
-    """
-    try:
-        rag_system = get_rag_system()
-        result = rag_system.search(question)
-        return f"Risultato della ricerca cinofila per '{question}':\n\n{result}"
-    except Exception as e:
-        return f"Errore nella ricerca RAG: {str(e)}"
+    def _run(self, query: str) -> str:
+        return self.chain.invoke(query)

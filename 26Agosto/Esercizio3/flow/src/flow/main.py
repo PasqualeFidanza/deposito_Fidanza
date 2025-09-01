@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-
 from crewai.flow import Flow, listen, start, router
 from crewai import LLM
 from flow.crews.rag_crew.rag_crew import RagCrew
@@ -24,16 +23,17 @@ class RagOrSearchFlow(Flow[FlowState]):
             else:
                 print('Inserisci una domanda valida!')
 
+
     @router(generate_question)
     def route_flow(self):
-        llm = LLM(model='azure/gpt-4o-mini')
+        llm = LLM(model='azure/gpt-4o')
         messages = [
             {
                 "role": "system",
                 "content": (
                     f"Analyze the question '{self.state.question}'; "
                     f"if it is related to '{self.state.rag_topic}' return 'true', "
-                    f"otherwise return 'false'. Don't give any explanation."
+                    f"otherwise return 'false'. Don't give any other explanation."
                 )
             }
         ]
@@ -49,22 +49,22 @@ class RagOrSearchFlow(Flow[FlowState]):
         else:
             return 'search'
 
+
     @listen('rag')
     def handle_rag(self):
         crew = RagCrew().crew()
         self.state.answer = crew.kickoff(inputs={
-            'question': self.state.question.strip()
+            'question': self.state.question
         })
-        print("RAG answer:", self.state.answer)
         return self.state
+
 
     @listen('search')
     def handle_search(self):
         crew = SearchCrew().crew()
         self.state.answer = crew.kickoff(inputs={
-            'question': self.state.question.strip()
+            'question': self.state.question
         })
-        print("Search answer:", self.state.answer)
         return self.state
 
 
