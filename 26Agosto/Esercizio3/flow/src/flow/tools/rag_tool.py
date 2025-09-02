@@ -304,3 +304,78 @@ from qdrant_client.models import (
     SearchParams,
     PointStruct,
 )
+
+load_dotenv()
+
+@dataclass
+class Settings:
+    """
+    Comprehensive configuration settings for the RAG pipeline.
+    
+    This class centralizes all configurable parameters, allowing easy tuning
+    of the system's behavior without modifying the core logic.
+    """
+    
+    qdrant_url: str = "http://localhost:6333"
+    
+    collection: str = "rag_chunks"
+
+    hf_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+
+    chunk_size: int = 700
+    
+    chunk_overlap: int = 120
+
+    top_n_semantic: int = 30
+    
+    top_n_text: int = 100
+    
+    final_k: int = 6
+    
+    alpha: float = 0.75
+    
+    text_boost: float = 0.20
+    
+    use_mmr: bool = True
+    
+    mmr_lambda: float = 0.6
+    
+    lm_base_env: str = "AZURE_API_BASE"
+    
+    lm_key_env: str = "AZURE_API_KEY"
+    
+    lm_model_env: str = "LLM_MODEL"
+
+
+SETTINGS = Settings()
+
+def get_embeddings(settings: Settings) -> AzureOpenAIEmbeddings:
+    """
+    Restituisce un modello di embedding deployato su Azure.
+    """
+    embeddings = AzureOpenAIEmbeddings(
+        api_version=os.getenv("AZURE_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_API_BASE"),
+        api_key=os.getenv("AZURE_API_KEY"),
+        model=os.getenv("EMBEDDING_MODEL")
+    )
+    print('EMBEDDING CREATO')
+    return embeddings
+
+def get_llm(settings: Settings):
+    """
+    Inizializza un ChatModel.
+    Richiede:
+      - OPENAI_BASE_URL (es. http://localhost:1234/v1)
+      - OPENAI_API_KEY (placeholder qualsiasi, es. "not-needed")
+      - LMSTUDIO_MODEL (nome del modello caricato in LM Studio)
+    """
+    llm = init_chat_model(
+        model = os.getenv("LLM_MODEL"),
+        model_provider='azure_openai',
+        api_key=os.getenv("AZURE_API_KEY"),
+        api_version=os.getenv("AZURE_API_VERSION"),
+        azure_endpoint=os.getenv("AZURE_API_BASE")
+    )
+    print('LLM CREATO')
+    return llm
