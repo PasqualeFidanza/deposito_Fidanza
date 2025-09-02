@@ -280,6 +280,7 @@ from langchain.schema import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import AzureOpenAIEmbeddings
+from langchain_community.document_loaders import TextLoader
 
 # LangChain Core components for prompt/chain construction
 from langchain_core.prompts import ChatPromptTemplate
@@ -379,3 +380,33 @@ def get_llm(settings: Settings):
     )
     print('LLM CREATO')
     return llm
+
+def _load_documents(self) -> List[Document]:
+    """
+    Carica tutti i documenti dalla directory specificata.
+    
+    Scansiona ricorsivamente la directory documents_path e carica tutti i file
+    con estensione .txt e .md, aggiungendo metadati sulla fonte.
+    
+    Returns:
+        List[Document]: Lista dei documenti caricati
+    """
+    folder = Path(self.documents_path)
+    documents: List[Document] = []
+    for file_path in folder.glob("**/*"):
+        if file_path.suffix.lower() not in [".txt", ".md"]:
+            continue
+        loader = TextLoader(str(file_path), encoding="utf-8")
+        docs = loader.load()
+        for doc in docs:
+            doc.metadata["source"] = file_path.name
+        documents.extend(docs)
+    return documents
+
+def split_documents(docs: List[Document], settings: Settings) -> List[Document]:
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=settings.chunk_size,
+        chunk_overlap=settings.chunk_overlap,
+        separators=["\n\n", "\n", ". ", "? ", "! ", "; ", ": ", ", ", " ", ""],
+    )
+    return splitter.split_documents(docs)
