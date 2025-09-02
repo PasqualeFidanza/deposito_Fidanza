@@ -18,6 +18,8 @@ import re
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
+
+
 class RagToolSphinx(BaseTool):
     """
     Tool CrewAI per Retrieval-Augmented Generation (RAG) su documenti Sphinx.
@@ -183,7 +185,7 @@ class RagToolSphinx(BaseTool):
         system_prompt = (
             "Sei un assistente esperto. Rispondi in italiano. "
             "Usa solo le informazioni nei documenti forniti. "
-            "Se non trovi la risposta, scrivi: 'Non è presente nel contesto fornito.'"
+            "Se non trovi la risposta analizza tutta la tua conoscenza sull'app e, in base ad essa, scrivi ciò che ritieni più opportuno."
         )
 
         prompt = ChatPromptTemplate.from_messages([

@@ -1,0 +1,207 @@
+```json
+{
+  "template": "TechOps Application Documentation Template",
+  "title": "Application Documentation Template",
+  "sections": [
+    {
+      "id": "key-links",
+      "title": "Key Links",
+      "subsections": []
+    },
+    {
+      "id": "general-information",
+      "title": "General Information",
+      "subsections": [
+        {
+          "id": "purpose-and-intended-use",
+          "title": "Purpose and Intended Use"
+        },
+        {
+          "id": "risk-classification",
+          "title": "Risk Classification"
+        }
+      ]
+    },
+    {
+      "id": "application-functionality",
+      "title": "Application Functionality",
+      "subsections": [
+        {
+          "id": "instructions-for-use-for-deployers",
+          "title": "Instructions for use for deployers"
+        },
+        {
+          "id": "model-capabilities",
+          "title": "Model Capabilities"
+        },
+        {
+          "id": "input-data-requirements",
+          "title": "Input Data Requirements"
+        },
+        {
+          "id": "output-explanation",
+          "title": "Output Explanation"
+        },
+        {
+          "id": "system-architecture-overview",
+          "title": "System Architecture Overview"
+        }
+      ]
+    },
+    {
+      "id": "models-and-datasets",
+      "title": "Models and Datasets",
+      "subsections": [
+        {
+          "id": "models",
+          "title": "Models"
+        },
+        {
+          "id": "datasets",
+          "title": "Datasets"
+        }
+      ]
+    },
+    {
+      "id": "deployment",
+      "title": "Deployment",
+      "subsections": [
+        {
+          "id": "infrastructure-and-environment-details",
+          "title": "Infrastructure and Environment Details"
+        },
+        {
+          "id": "integration-with-external-systems",
+          "title": "Integration with External Systems"
+        },
+        {
+          "id": "deployment-plan",
+          "title": "Deployment Plan"
+        }
+      ]
+    },
+    {
+      "id": "lifecycle-management",
+      "title": "Lifecycle Management",
+      "subsections": []
+    },
+    {
+      "id": "risk-management-system",
+      "title": "Risk Management System",
+      "subsections": [
+        {
+          "id": "risk-assessment-methodology",
+          "title": "Risk Assessment Methodology"
+        },
+        {
+          "id": "identified-risks",
+          "title": "Identified Risks"
+        },
+        {
+          "id": "risk-mitigation-measures",
+          "title": "Risk Mitigation Measures"
+        }
+      ]
+    },
+    {
+      "id": "testing-and-validation",
+      "title": "Testing and Validation (Accuracy, Robustness, Cybersecurity)",
+      "subsections": [
+        {
+          "id": "accuracy",
+          "title": "Testing and Validation Procedures (Accuracy)"
+        },
+        {
+          "id": "accuracy-lifecycle",
+          "title": "Accuracy throughout the lifecycle"
+        },
+        {
+          "id": "robustness",
+          "title": "Robustness"
+        },
+        {
+          "id": "cybersecurity",
+          "title": "Cybersecurity"
+        }
+      ]
+    },
+    {
+      "id": "human-oversight",
+      "title": "Human Oversight",
+      "subsections": []
+    },
+    {
+      "id": "incident-management",
+      "title": "Incident Management",
+      "subsections": [
+        {
+          "id": "common-issues",
+          "title": "Common Issues"
+        },
+        {
+          "id": "support-contact",
+          "title": "Support Contact"
+        }
+      ]
+    },
+    {
+      "id": "troubleshooting-ai-deployment",
+      "title": "Troubleshooting AI Application Deployment",
+      "subsections": [
+        {
+          "id": "infrastructure-level-issues",
+          "title": "Infrastructure-Level Issues"
+        },
+        {
+          "id": "network-failures",
+          "title": "Network Failures"
+        },
+        {
+          "id": "deployment-pipeline-failures",
+          "title": "Deployment Pipeline Failures"
+        },
+        {
+          "id": "integration-problems",
+          "title": "Integration Problems"
+        },
+        {
+          "id": "data-quality-problems",
+          "title": "Data Quality Problems"
+        },
+        {
+          "id": "model-level-issues",
+          "title": "Model-Level Issues"
+        },
+        {
+          "id": "monitoring-and-logging-failures",
+          "title": "Monitoring and Logging Failures"
+        },
+        {
+          "id": "recovery-and-rollback",
+          "title": "Recovery and Rollback"
+        }
+      ]
+    },
+    {
+      "id": "eu-declaration-of-conformity",
+      "title": "EU Declaration of conformity",
+      "subsections": [
+        {
+          "id": "standards-applied",
+          "title": "Standards applied"
+        }
+      ]
+    },
+    {
+      "id": "template-version",
+      "title": "Template Version",
+      "subsections": []
+    },
+    {
+      "id": "documentation-authors",
+      "title": "Documentation Authors",
+      "subsections": []
+    }
+  ]
+}
+```

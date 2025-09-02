@@ -51,7 +51,7 @@ class RagOrSearchFlow(Flow[FlowState]):
         (non vuota).
         """
         while True:
-            self.state.question = 'delfini'
+            self.state.question = input('Inserisci la tua domanda: ')
             print('DOMANDA: ', self.state.question)
             if self.state.question.strip():
                 break
@@ -138,7 +138,7 @@ class RagOrSearchFlow(Flow[FlowState]):
     #     crew = MathCrew().crew()
     #     pass
 
-    @listen(or_(handle_rag, handle_search))
+    @listen(or_(handle_rag,handle_search))
     def handle_documentation(self):
         """
         Chiede in input il nome dell'applicazione e restituisce la documentazione etica.
@@ -150,7 +150,7 @@ class RagOrSearchFlow(Flow[FlowState]):
         self.state.answer = crew.kickoff(inputs={
             'app_name': app_name,
             'app_name_slug': app_name_slug,
-            'website_url': 'https://aloosley.github.io/techops/template-application-documentation/#general-information'
+            'website_url': 'https://aloosley.github.io/techops/template-application-documentation/'
         })
         return self.state
 

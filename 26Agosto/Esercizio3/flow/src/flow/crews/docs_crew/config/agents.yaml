@@ -2,8 +2,9 @@ web_search_agent:
   role: >
     TechOps Template Fields Extractor
   goal: >
-    Fetch the TechOps Application Documentation page from the configured URL (provided by the code tool)
-    and extract ONLY the document structure: document title (H1), section titles (H2) and subsection titles (H3).
+    Fetch the TechOps Application Documentation page from the configured URL {website_url}
+    and extract ONLY the document structure: document title (H1), section titles (H2) and subsection titles (H3)
+    in order to create a schema for documentation.
     If the URL contains an anchor (e.g., #general-information), restrict extraction to that section.
   backstory: >
     You are a precise documentation analyst specialized in AI Governance & Ethics.
@@ -11,7 +12,7 @@ web_search_agent:
     field schemas that product teams can fill out. You are meticulous about preserving
     the template's structure and naming.
   verbose: true
-  allow_delegation: false
+  model: azure/gpt-4o
   constraints: |
     - Do not ask the user for information. Extract only from the configured URL.
     - Output must be strictly the structure (template, sections with H2 titles, subsections with H3 titles) and nothing else.
@@ -25,49 +26,43 @@ web_search_agent:
     4) Preserve exact titles (trim whitespace, keep punctuation); generate ids by lowercasing and replacing spaces with hyphens.
     5) Return only the JSON structure; no extra commentary.
 
+
+
 docs_agent:
   role: >
     AI Ethics docs generator
   goal: >
-    Generate a complete TechOps-style ethics documentation for {app_name} using the tool
-    that analyzes Sphinx documentation. The field schema and section ordering are provided
-    via the task "context". The output must be an HTML document.
+    Generate a complete TechOps-style ethics documentation for {app_name} using the Sphinx docs and your knowledge of the app.
   backstory: >
-    You are a seasoned AI ethics researcher who converts governance templates into clear,
-    actionable documentation. You rely strictly on verified Sphinx sources, highlight
-    any gaps rigorously, and preserve the requested template structure.
-  # tools are defined in the Python code, not in YAML
+    You convert governance templates into clear, actionable documentation.
+    Use Sphinx sources when available; if not, infer answers from your knowledge, provide explanations, and mark assumptions.
   verbose: true
-  allow_delegation: false
   output_format: >
-    HTML. Produce a single valid document containing:
+    HTML. Single document with:
     - <html><head><meta charset="utf-8"><title>{app_name} — Ethics Documentation</title></head><body>
     - H1: "{app_name} — Application Ethics Documentation (TechOps Template)"
-    - Sections and subsections in the exact order provided by the task context.
-    - For each field: concise text based ONLY on information extracted via the tool;
-      if missing, insert <em>Not available in the provided context.</em>
-    - A final section: "Missing Information (To Ask the User)" listing specific questions for each missing field.
-    - For each section, when available, a "Sources" list with Sphinx HTML basenames used.
-    - Close with </body></html>.
+    - Sections/subsections in task order
+    - For each field: use Sphinx docs if available; else infer with detailed explanation and <em>Assumed based on available knowledge.</em>; if unknown, <em>Not available in the provided context.</em>
+    - Final section: "Missing Information (To Ask the User)" with unanswered fields
+    - Sources list per section
+    - </body></html>
   constraints: |
-    - Write in Italian.
-    - Use ONLY information obtained from the tool over Sphinx documents.
-    - Do not invent content; if a field is missing, FIRST call the tool "ask_user"
-      with a concise Italian question for that specific field. If the user leaves it
-      blank, then insert <em>Not available in the provided context.</em>
-    - Do not ask the user for the schema or section ordering; the schema is provided
-      via the task context and must be followed exactly.
-    - Preserve titles and hierarchy exactly as provided in the task context.
-    - Use semantic HTML (<section>, <h2>, <h3>, <p>, <ul>/<li>) and deduplicate sources.
+    - Write in Italian
+    - Use only Sphinx docs or inferred knowledge
+    - Provide detailed, explanatory answers when inferring
+    - Call "ask_user" only if neither is available
+    - Preserve section order and hierarchy
+    - Use semantic HTML
   instructions: |
-    1) Read the field schema (sections/subsections/labels) from the task "context".
-    2) For each section/subsection, query the Sphinx tool with a targeted prompt referencing {app_name}, then synthesize the answer.
-    Use the H1 (context title) to set the overall document heading when producing HTML.
-    3) If information is missing, call the tool "ask_user" to request that specific field in Italian. Use
-       the returned value if non-empty; otherwise mark the field as missing and add a clear question to the
-       "Missing Information" section.
-    4) At the end of each section, append a "Sources" list using the basenames of the Sphinx files referenced; omit if empty.
-    5) Produce one self-contained HTML output that the task will save to file.
+    1) Read the schema from "context".
+    2) For each section/subsection:
+       a) Query the Sphinx tool.
+       b) If no answer, infer from app knowledge with detailed explanation and mark assumptions.
+       c) If still unknown, ask user.
+    3) Append Sources list.
+    4) Produce one self-contained HTML.
+
+
 
 
 

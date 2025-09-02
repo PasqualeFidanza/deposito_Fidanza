@@ -1,23 +1,23 @@
 extract_template_fields:
   description: >
-    Visit the configured TechOps template URL and return ONLY the structure: document
-    title (H1), section titles (H2), and subsection titles (H3). If the URL has an
+    Visit the configured TechOps {website_url} and return ONLY the structure: document
+    title (H1), section titles (H2), and subsection titles (H3). If the {website_url} has an
     anchor, restrict the output to that section.
   expected_output: >
     A JSON object with: "template", "title", "sections":[{id,title, subsections?:[{id,title}]}]
   agent: web_search_agent
+  output_file: output/schema.json
 
 generate_ethics_doc:
   description: >
     Create a TechOps-style ethics documentation for {app_name} in HTML in the Italian language using the
     structure (title/sections/subsections) provided via the task context and the Sphinx documentation
     analyzed through rag_tool_sphinx. Use the H1 "title" from context as the overall document heading.
-    For each section/subsection, fill in content using Sphinx docs; if specific required information is
-    missing, ask the user ONLY for that missing content via the tool. Preserve the provided structure,
+    For each section/subsection, fill in content using Sphinx docs. Preserve the provided structure,
     cite sources per section, and add a final "Missing Information (To Ask the User)" section.
   agent: docs_agent
   context:
-    - extract_template_fields   # prior task that outputs the schema; becomes this task's context
+    - extract_template_fields  
   expected_output: >
     A single, self-contained HTML document that follows exactly the title/section/subsection order from context.
     Use Sphinx-derived content for each section/subsection; if content is missing, ask the user and use the

@@ -3,20 +3,10 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from flow.tools.docs_tool import RagToolSphinx
-from crewai.tools import tool
-from crewai_tools import ScrapeWebsiteTool
+from flow.tools.ask_tool import AskUserTool
+from crewai_tools import SerperScrapeWebsiteTool
 
 link = "https://aloosley.github.io/techops/template-application-documentation/#general-information"
-
-
-
-@tool("ask_user")
-def ask_user(question: str = "") -> str:
-    """Chiede all'utente un valore mancante e restituisce il testo inserito."""
-    try:
-        return input(f"[Richiesto] {question}: ").strip()
-    except Exception:
-        return ""
 
 
 @CrewBase
@@ -31,7 +21,7 @@ class DocsCrew():
         return Agent(
             config=self.agents_config['web_search_agent'],
             verbose=True,
-            tools=[ScrapeWebsiteTool(website_url=link)]
+            tools=[SerperScrapeWebsiteTool()]
         )
     
     @agent
@@ -39,7 +29,7 @@ class DocsCrew():
         return Agent(
             config=self.agents_config['docs_agent'],
             verbose=True,
-            tools = [RagToolSphinx(), ask_user]
+            tools = [RagToolSphinx()]
         )
     
     @task
