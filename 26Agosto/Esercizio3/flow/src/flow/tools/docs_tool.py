@@ -16,6 +16,7 @@ from typing import List
 import os
 import re
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 class RagToolSphinx(BaseTool):
     """
@@ -73,41 +74,64 @@ class RagToolSphinx(BaseTool):
             print("Errore LLM:", e)
 
         # Carica o costruisci FAISS Sphinx
-        docs = self._load_sphinx_documents_regex()
+        docs = self._load_sphinx_documents_bs()
         self.vector_store_sphinx = self._load_or_build_sphinx_vectorstore(docs)
         self.retriever_sphinx = self._make_retriever(self.vector_store_sphinx)
 
         # Catena RAG
         self.chain = self._build_chain()
 
-    def _load_sphinx_documents_regex(self) -> List[Document]:
+    def _load_sphinx_documents_bs(self) -> List[Document]:
         documents: List[Document] = []
         folder = Path(self.sphinx_path)
-        tag_pattern = re.compile(r"<(h[1-6]|p)>(.*?)</\1>", re.DOTALL | re.IGNORECASE)
 
         for file_path in folder.glob("**/*.html"):
-            with open(file_path, "r", encoding="utf-8") as f:
-                html = f.read()
-                current_title = None
-                current_content = []
-                for match in tag_pattern.finditer(html):
-                    tag, text = match.groups()
-                    text = text.strip()
-                    if tag.startswith("h"):
-                        if current_title and current_content:
-                            documents.append(Document(
-                                page_content="\n".join(current_content),
-                                metadata={"title": current_title, "source": file_path.name}
-                            ))
-                        current_title = text
-                        current_content = []
-                    elif tag == "p" and current_title:
-                        current_content.append(text)
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    html = f.read()
+            except Exception:
+                continue
+
+            soup = BeautifulSoup(html, "html.parser")
+
+            # Preferisci il contenuto nel body
+            container = soup.body or soup
+
+            current_title: Optional[str] = None
+            current_content: List[str] = []
+
+            def flush_section():
+                nonlocal current_title, current_content
                 if current_title and current_content:
                     documents.append(Document(
-                        page_content="\n".join(current_content),
-                        metadata={"title": current_title, "source": file_path.name}
+                        page_content="\n".join(current_content).strip(),
+                        metadata={"title": current_title.strip(), "source": file_path.name}
                     ))
+                current_content = []
+
+            # Considera una gamma più ampia di tag testuali
+            selectable_tags = [
+                "h1", "h2", "h3", "h4", "h5", "h6",
+                "p", "li", "dd", "dt", "pre", "code"
+            ]
+
+            # Aggiungi anche il testo delle celle delle tabelle
+            for el in container.find_all(selectable_tags + ["td", "th"], recursive=True):
+                name = el.name.lower()
+                if name in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+                    # Nuova sezione: emetti la precedente
+                    flush_section()
+                    current_title = el.get_text(" ", strip=True)
+                else:
+                    # Aggiungi testo al contenuto corrente solo se abbiamo un titolo
+                    if current_title:
+                        text = el.get_text(" ", strip=True)
+                        if text:
+                            current_content.append(text)
+
+            # Flush finale per l'ultima sezione
+            flush_section()
+
         return documents
 
     def _split_documents(self, docs: List[Document]) -> List[Document]:
