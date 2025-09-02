@@ -1,0 +1,16 @@
+# LangChain core (lascia fare a langchain per la versione di core)
+langchain==0.2.14
+
+# Providers
+langchain-openai==0.2.3
+langchain-huggingface==0.3.1
+
+# Qdrant
+qdrant-client==1.9.2
+
+# Hugging Face embeddings
+sentence-transformers==2.7.0
+torch>=2.2.0
+
+# Env
+python-dotenv==1.0.1
