@@ -77,6 +77,10 @@ class RagToolSphinx(BaseTool):
         docs = self._load_sphinx_documents_bs()
         self.vector_store_sphinx = self._load_or_build_sphinx_vectorstore(docs)
         self.retriever_sphinx = self._make_retriever(self.vector_store_sphinx)
+        try:
+            print(f"RagToolSphinx: indicizzati {len(docs)} documenti HTML")
+        except Exception:
+            pass
 
         # Catena RAG
         self.chain = self._build_chain()
@@ -99,6 +103,7 @@ class RagToolSphinx(BaseTool):
 
             current_title: Optional[str] = None
             current_content: List[str] = []
+            default_title = file_path.stem
 
             def flush_section():
                 nonlocal current_title, current_content
@@ -123,14 +128,24 @@ class RagToolSphinx(BaseTool):
                     flush_section()
                     current_title = el.get_text(" ", strip=True)
                 else:
-                    # Aggiungi testo al contenuto corrente solo se abbiamo un titolo
-                    if current_title:
-                        text = el.get_text(" ", strip=True)
-                        if text:
-                            current_content.append(text)
+                    # Se non c'è ancora un titolo, usa il nome file come titolo di default
+                    if not current_title:
+                        current_title = default_title
+                    text = el.get_text(" ", strip=True)
+                    if text:
+                        current_content.append(text)
 
             # Flush finale per l'ultima sezione
             flush_section()
+
+            # Fallback: nessuna sezione estratta, usa tutto il testo della pagina
+            if not any(d.metadata.get("source") == file_path.name for d in documents):
+                full_text = soup.get_text(" ", strip=True)
+                if full_text:
+                    documents.append(Document(
+                        page_content=full_text,
+                        metadata={"title": default_title, "source": file_path.name}
+                    ))
 
         return documents
 
@@ -157,7 +172,7 @@ class RagToolSphinx(BaseTool):
         return self._build_vectorstore(chunks)
 
     def _make_retriever(self, vector_store: FAISS):
-        return vector_store.as_retriever(search_kwargs={"k": 5})
+        return vector_store.as_retriever(search_kwargs={"k": 12})
 
     def _format_docs(self, docs: List[Document]) -> str:
         return "\n\n".join(

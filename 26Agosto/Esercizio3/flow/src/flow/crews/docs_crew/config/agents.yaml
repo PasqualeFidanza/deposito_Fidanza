@@ -2,9 +2,9 @@ web_search_agent:
   role: >
     TechOps Template Fields Extractor
   goal: >
-    Given {link}, fetch and parse the TechOps Application Documentation template and
-    return the exact fields required to fill out the documentation. If {link} contains
-    an anchor (e.g., #general-information), return only that section's schema.
+    Fetch the TechOps Application Documentation page from the configured URL (provided by the code tool)
+    and extract ONLY the document structure: document title (H1), section titles (H2) and subsection titles (H3).
+    If the URL contains an anchor (e.g., #general-information), restrict extraction to that section.
   backstory: >
     You are a precise documentation analyst specialized in AI Governance & Ethics.
     You read standards/templates on the web and convert them into actionable, structured
@@ -12,10 +12,18 @@ web_search_agent:
     the template's structure and naming.
   verbose: true
   allow_delegation: false
+  constraints: |
+    - Do not ask the user for information. Extract only from the configured URL.
+    - Output must be strictly the structure (template, sections with H2 titles, subsections with H3 titles) and nothing else.
   output_format: >
-    JSON with keys: "template", "sections". Each section has:
-    { id, title, fields?: [{key,label,type,description?}],
-      subsections?: [{ id,title, fields?, item_schema? }] }
+    JSON with keys: "template", "title", "sections". "title" must come from the page H1.
+    Each section has: { id, title, subsections?: [{ id, title }] }
+  instructions: |
+    1) Use the web scraping tool output (HTML text) as your only source.
+    2) Extract the first H1 as the document "title".
+    3) Identify H2 headings as top-level sections and H3 headings as subsections.
+    4) Preserve exact titles (trim whitespace, keep punctuation); generate ids by lowercasing and replacing spaces with hyphens.
+    5) Return only the JSON structure; no extra commentary.
 
 docs_agent:
   role: >
@@ -44,13 +52,19 @@ docs_agent:
   constraints: |
     - Write in Italian.
     - Use ONLY information obtained from the tool over Sphinx documents.
-    - Do not invent content; explicitly mark missing items.
+    - Do not invent content; if a field is missing, FIRST call the tool "ask_user"
+      with a concise Italian question for that specific field. If the user leaves it
+      blank, then insert <em>Not available in the provided context.</em>
+    - Do not ask the user for the schema or section ordering; the schema is provided
+      via the task context and must be followed exactly.
     - Preserve titles and hierarchy exactly as provided in the task context.
     - Use semantic HTML (<section>, <h2>, <h3>, <p>, <ul>/<li>) and deduplicate sources.
   instructions: |
     1) Read the field schema (sections/subsections/labels) from the task "context".
-    2) For each field, query the tool with a targeted prompt referencing {app_name}, then synthesize the answer.
-    3) If the tool indicates the information is missing, mark the field as missing and add a clear question to the
+    2) For each section/subsection, query the Sphinx tool with a targeted prompt referencing {app_name}, then synthesize the answer.
+    Use the H1 (context title) to set the overall document heading when producing HTML.
+    3) If information is missing, call the tool "ask_user" to request that specific field in Italian. Use
+       the returned value if non-empty; otherwise mark the field as missing and add a clear question to the
        "Missing Information" section.
     4) At the end of each section, append a "Sources" list using the basenames of the Sphinx files referenced; omit if empty.
     5) Produce one self-contained HTML output that the task will save to file.

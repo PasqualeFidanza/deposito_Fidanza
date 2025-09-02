@@ -1,24 +1,26 @@
 extract_template_fields:
   description: >
-    Visit {link} and return the field schema needed to create the application
-    documentation according to the TechOps template. If {link} has an anchor,
-    restrict the output to that section.
+    Visit the configured TechOps template URL and return ONLY the structure: document
+    title (H1), section titles (H2), and subsection titles (H3). If the URL has an
+    anchor, restrict the output to that section.
   expected_output: >
-    A JSON object with: "template", "sections":[...]
+    A JSON object with: "template", "title", "sections":[{id,title, subsections?:[{id,title}]}]
   agent: web_search_agent
 
 generate_ethics_doc:
   description: >
     Create a TechOps-style ethics documentation for {app_name} in HTML in the Italian language using the
-    section/field schema provided via the task context and the Sphinx documentation
-    analyzed through rag_tool_sphinx. Preserve the template structure, cite sources per
-    section, and add a final "Missing Information (To Ask the User)" section.
+    structure (title/sections/subsections) provided via the task context and the Sphinx documentation
+    analyzed through rag_tool_sphinx. Use the H1 "title" from context as the overall document heading.
+    For each section/subsection, fill in content using Sphinx docs; if specific required information is
+    missing, ask the user ONLY for that missing content via the tool. Preserve the provided structure,
+    cite sources per section, and add a final "Missing Information (To Ask the User)" section.
   agent: docs_agent
   context:
     - extract_template_fields   # prior task that outputs the schema; becomes this task's context
   expected_output: >
-    A single, self-contained HTML document that follows the schema order from context,
-    fills each field using ONLY Sphinx-derived information (or marks it as
-    "<em>Not available in the provided context.</em>"), cites Sphinx sources by basename,
-    and includes a final "Missing Information (To Ask the User)" section.
+    A single, self-contained HTML document that follows exactly the title/section/subsection order from context.
+    Use Sphinx-derived content for each section/subsection; if content is missing, ask the user and use the
+    provided value; if no value is provided, insert <em>Not available in the provided context.</em>.
+    Cite Sphinx sources by basename per section and include a final "Missing Information (To Ask the User)" section.
   output_file: output/{app_name_slug}_techops.html
